@@ -1,0 +1,169 @@
+﻿
+@{
+    ViewData["Title"] = "Chat";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    //string receivedClass = "rounded-bottom rounded-end bg-gradient bg-orange p-3 ps-1 py-2 text-wrap received";
+    //string sendedClass = "rounded-bottom rounded-start bg-gradient bg-primary p-3 pe-1 py-2 text-wrap sended";
+
+    string[] receivedClass =
+            {
+                "d-grid col-12 justify-content-start",
+                "rounded-bottom rounded-end bg-gradient bg-orange p-3 ps-1 py-2 text-wrap received"
+            };
+
+    string[] sendedClass =
+            {
+                "d-grid col-12 justify-content-end",
+                "rounded-bottom rounded-start bg-gradient bg-primary p-3 pe-1 py-2 text-wrap sended"
+            };
+}
+
+<style>
+
+    .message {
+        width: 100% !important;
+        margin-bottom: -7px !important;
+    }
+
+    .float-end {
+        width: 35%;
+    }
+
+    input:focus {
+        box-shadow: none !important;
+    }
+
+    .bg-orange {
+        background-color: #ff6a00 !important;
+    }
+
+    .btn:focus {
+        box-shadow: none !important;
+    }
+
+    .chatBox {
+        text-anchor: end;
+        overflow: auto;
+        height: 70vh;
+    }
+
+    .justifyStart {
+        justify-self: start !important;
+    }
+
+    .justifyEnd {
+        justify-self: end !important;
+    }
+</style>
+
+<div id="beforeCheck" class="visible">
+    <div class="container">
+        <div class="row align-items-center justify-content-center">
+            <div class="col-12 col-lg-7 p-5 rounded-pill border border-primary shadow">
+                <h4 class="text-center">
+                    Chat Giriş Ekranı<br />
+                    <small class="text-primary">Lütfen devam edebilmek için kullanıcı adınızı giriniz..</small>
+                </h4>
+                <br />
+                <input type="text" id="userInput" class="form-control rounded-pill" placeholder="Kullanıcı adı.." />
+                <br />
+                <button class="btn btn-outline-primary rounded-pill col-12" onclick="loginCheck();">Giriş Yap!</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="afterCheck" class="invisible">
+    <h3>Asp.Net Core (5) <b>SignalR Realtime Chat</b></h3>
+    <div class="h5">Total Views: <b id="viewCounter">0</b></div>
+    <div class="h5">Total Users: <b id="userCounter">0</b></div>
+
+    <div class="container">
+        <div class="col-12 col-lg-5 border border-success p-2 shadow mt-3 rounded-3" style="margin-left: -15px;">
+            <div class="container-fluid bg-dark shadow text-white rounded-2 mb-3 chatBox">
+                <div class="p-3 pe-0 pb-0 mb-0 pb-0 d-grid" id="messageBox">
+
+                </div>
+            </div>
+            <div class="container-fluid rounded border border-success ps-1">
+                <div class="row p-1 ps-0 pe-0 me-0">
+                    <div class="col-10">
+                        <input id="txtBox" type="text" class="form-control border-2" placeholder="Enter a message.." required />
+                    </div>
+                    <div class="col-2 justify-content-center ps-0">
+                        <button class="btn btn-primary px-4" onclick="addMessage();">Yolla!</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script src="~/js/signalr.js" type="text/javascript"></script>
+
+    <script>
+        function scrollBottom() {
+            const chatdiv = $(".chatBox");
+            chatdiv.scrollTop(chatdiv[0].scrollHeight);
+        }
+
+        let username = "Undefined User";
+        function loginCheck() {
+            username = $("#userInput").val();
+            if (!username) {
+                username = "Undefined User";
+            }
+            $("#beforeCheck").remove();
+            $("#afterCheck").removeClass("invisible");
+        }
+        function addMessage() {
+            let sendedMessage = $("#txtBox").val();
+            sendMessageClient(username, sendedMessage);
+
+            let sendedMessageHtml = `<div class='@sendedClass[0]'><div class='d-flex message mb-0'><p class='@sendedClass[1]'>${sendedMessage} &nbsp; <b class="bg-dark bg-gradient rounded-3 p-1">${username}</b></p></div></div>`;
+
+            $("#messageBox").append(sendedMessageHtml);
+            scrollBottom();
+            $("#txtBox").val("");
+        }
+        function receiveMessage(username, message) {
+            let receivedMessageHtml = `<div class='@receivedClass[0]'><div class='d-flex message mb-0'><p class='@receivedClass[1]'><b class="bg-dark bg-gradient rounded-3 p-1">${username}</b> ${message}</p></div></div>`;
+            $("#messageBox").append(receivedMessageHtml);
+            scrollBottom();
+        }
+
+        var userCountConnection = new signalR.HubConnectionBuilder().withUrl("/hubs/userCount").build();
+
+        userCountConnection.on("updateTotalViews", (count) => {
+            $("#viewCounter").html(count);
+            console.log(`${value} has joined the room!`);
+        });
+        userCountConnection.on("updateTotalUsers", (value) => {
+            $("#userCounter").html(value);
+        });
+        userCountConnection.on("sendMessage", (user, value) => {
+            receiveMessage(user, value);
+        });
+
+        function sendMessageClient(user, message) {
+            userCountConnection.send("SendMessage", user, message);
+        }
+
+        function newWindowLoaded() {
+            userCountConnection.send("WindowAdded");
+        }
+
+        function fulFilled() {
+            console.log("Connection successful at the 'userCount' hub.");
+            newWindowLoaded();
+        }
+
+        function rejected() {
+            console.log("Connection failed with 'userCount' hub");
+        }
+
+        userCountConnection.start().then(fulFilled, rejected);
+    </script>
+}
