@@ -103,7 +103,7 @@
                     </div>
                 </div>
                 <div class="col-12 col-lg-3 p-3 ms-lg-1 mt-3 rounded border border-3 border-primary shadow text-center">
-                    <h2><button class="btn btn-outline-success col-12" data-toggle="modal" data-target="#usersModal">Tüm Kullanıcılar</button></h2>
+                    <h2><button class="btn btn-outline-success col-12" data-bs-toggle="modal" data-bs-target="#usersModal">Tüm Kullanıcılar</button></h2>
                     <hr />
                     <h4>Odalar</h4>
                     <hr />
@@ -123,15 +123,32 @@
     </div>
 </div>
 
-<div class="modal" id="usersModal">
-    <div class="modal-dialog">
+<div class="modal fade" id="usersModal">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h4>Aktif Kullanıcı Listesi</h4>
+                <button class="btn btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                Deneme
-                Denemeee
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th class="col-8 text-center">Kullanıcı Adı</th>
+                            <th class="col-4 text-center">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody id="activeUsers" class="text-center">
+                        <tr>
+                            <th>Evren</th>
+                            <th><a href="#" class="btn btn-outline-danger">Mesaj Gönder</a></th>
+                        </tr>
+                        <tr>
+                            <th>Ahmet</th>
+                            <th><a href="#" class="btn btn-outline-danger">Mesaj Gönder</a></th>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
