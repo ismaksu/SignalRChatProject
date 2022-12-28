@@ -74,7 +74,7 @@
     </div>
 </div>
 
-<div id="afterCheck" class="invisible">
+<div id="afterCheck" class="d-none">
     <h3>Asp.Net Core (5) <b>SignalR Realtime Chat</b></h3>
     <div class="h5">Total Views: <b id="viewCounter">0</b></div>
     <div class="h5">Total Users: <b id="userCounter">0</b></div>
@@ -116,7 +116,7 @@
                 username = "Undefined User";
             }
             $("#beforeCheck").remove();
-            $("#afterCheck").removeClass("invisible");
+            $("#afterCheck").removeClass("d-none");
         }
         function addMessage() {
             let sendedMessage = $("#txtBox").val();
