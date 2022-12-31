@@ -1,4 +1,6 @@
 ﻿using DotNetCoreSignalR.DotNetCoreSignalR.Business.Abstract;
+using DotNetCoreSignalR.DotNetCoreSignalR.Data.Concrete;
+using DotNetCoreSignalR.DotNetCoreSignalR.Entity;
 using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Collections.Generic;
@@ -27,10 +29,19 @@ namespace DotNetCoreSignalR.Hubs
             return base.OnDisconnectedAsync(exception);
         }
 
-        public async Task WindowAdded()
+        public async Task UserJoined(string username)
         {
+            User user = new User()
+            {
+                ConnectionId = Context.ConnectionId,
+                Username = username
+            };
+
+            TableContext.Users.Add(user);
+
             TotalViews++;
-            await Clients.All.UpdateTotalViews(TotalViews);
+
+            await Clients.All.ClientJoined(username, TotalViews);
         }
 
         public async Task SendMessage(string username, string message)

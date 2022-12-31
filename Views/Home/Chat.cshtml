@@ -69,8 +69,19 @@
                 <br />
                 <input type="text" id="userInput" class="form-control rounded-pill" placeholder="Kullanıcı adı.." />
                 <br />
-                <button class="btn btn-outline-primary rounded-pill col-12" onclick="loginCheck();">Giriş Yap!</button>
+                <button id="btnLogin" class="btn btn-outline-primary rounded-pill col-12">Giriş Yap!</button>
             </div>
+        </div>
+    </div>
+</div>
+
+<div class="position-fixed top-0 end-0 p-3">
+    <div id="alertToast" class="toast align-items-center text-white bg-success border-0">
+        <div class="d-flex">
+            <div class="toast-body" id="toastBody">
+                
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
     </div>
 </div>
@@ -97,7 +108,7 @@
                                 <input id="txtBox" type="text" class="form-control border-2" placeholder="Enter a message.." required />
                             </div>
                             <div class="col-2 justify-content-center ps-0">
-                                <button class="btn btn-primary px-4" onclick="addMessage();">Yolla!</button>
+                                <button id="btnSend" class="btn btn-primary px-4">Yolla!</button>
                             </div>
                         </div>
                     </div>
@@ -139,14 +150,7 @@
                         </tr>
                     </thead>
                     <tbody id="activeUsers" class="text-center">
-                        <tr>
-                            <th>Evren</th>
-                            <th><a href="#" class="btn btn-outline-danger">Mesaj Gönder</a></th>
-                        </tr>
-                        <tr>
-                            <th>Ahmet</th>
-                            <th><a href="#" class="btn btn-outline-danger">Mesaj Gönder</a></th>
-                        </tr>
+
                     </tbody>
                 </table>
             </div>
@@ -158,66 +162,88 @@
     <script src="~/js/signalr.js" type="text/javascript"></script>
 
     <script>
-        function scrollBottom() {
-            const chatdiv = $(".chatBox");
-            chatdiv.scrollTop(chatdiv[0].scrollHeight);
-        }
-
-        let username = "Undefined User";
-        function loginCheck() {
-            username = $("#userInput").val();
-            if (!username) {
-                username = "Undefined User";
+        $(document).ready(() => {
+            function scrollBottom() {
+                const chatdiv = $(".chatBox");
+                chatdiv.scrollTop(chatdiv[0].scrollHeight);
             }
-            $("#beforeCheck").remove();
-            $("#afterCheck").removeClass("d-none");
-        }
-        function addMessage() {
-            let sendedMessage = $("#txtBox").val();
-            sendMessageClient(username, sendedMessage);
 
-            let sendedMessageHtml = `<div class='@sendedClass[0]'><div class='d-flex message mb-0'><p class='@sendedClass[1]'>${sendedMessage} &nbsp; <b class="bg-dark bg-gradient rounded-3 p-1">${username}</b></p></div></div>`;
+            let username = "Undefined User";
 
-            $("#messageBox").append(sendedMessageHtml);
-            scrollBottom();
-            $("#txtBox").val("");
-        }
-        function receiveMessage(username, message) {
-            let receivedMessageHtml = `<div class='@receivedClass[0]'><div class='d-flex message mb-0'><p class='@receivedClass[1]'><b class="bg-dark bg-gradient rounded-3 p-1">${username}</b> ${message}</p></div></div>`;
-            $("#messageBox").append(receivedMessageHtml);
-            scrollBottom();
-        }
+            $("#btnLogin").click(() => {
+                username = $("#userInput").val();
+                if(!username) {
+                    username = "Undefined User";
+                }
+                $("#beforeCheck").remove();
+                $("#afterCheck").removeClass("d-none");
+                connectionWork();
+            });
 
-        var userCountConnection = new signalR.HubConnectionBuilder().withUrl("/hubs/userCount").build();
 
-        userCountConnection.on("updateTotalViews", (count) => {
-            $("#viewCounter").html(count);
-            console.log(`${value} has joined the room!`);
+
+            function connectionWork() {
+
+                $("#btnSend").click(() => {
+                    let sendedMessage = $("#txtBox").val();
+                    sendMessageClient(username, sendedMessage);
+
+                    let sendedMessageHtml = `<div class='@sendedClass[0]'><div class='d-flex message mb-0'><p class='@sendedClass[1]'>${sendedMessage} &nbsp; <b class="bg-dark bg-gradient rounded-3 p-1">${username}</b></p></div></div>`;
+
+                    $("#messageBox").append(sendedMessageHtml);
+                    scrollBottom();
+                    $("#txtBox").val("");
+                });
+
+                function receiveMessage(username, message) {
+                    let receivedMessageHtml = `<div class='@receivedClass[0]'><div class='d-flex message mb-0'><p class='@receivedClass[1]'><b class="bg-dark bg-gradient rounded-3 p-1">${username}</b> ${message}</p></div></div>`;
+                    $("#messageBox").append(receivedMessageHtml);
+                    scrollBottom();
+                }
+
+                var userConnection = new signalR.HubConnectionBuilder().withUrl("/hubs/userCount").build();
+
+                userConnection.on("clientJoined", (username, totalviews) => {
+                    $("#viewCounter").html(totalviews);
+                    if (username === "Undefined User") {
+                        $("#toastBody").html("İsimsiz bir kullanıcı giriş yaptı.");
+                    }
+                    else {
+                        $("#toastBody").html(`<b>${username}</b> isimli kullanıcı giriş yaptı!`);
+                    }
+                    const toast = new bootstrap.Toast($("#alertToast"));
+                    toast.show();
+
+                    const htmlCode = `<tr><th>${username}</th><td><a href='#' class='btn btn-outline-success'>Mesaj Gönder</a></td></tr>`;
+
+                    $("#activeUsers").append(htmlCode);
+                });
+                userConnection.on("UpdateTotalUsers", (value) => {
+                    $("#userCounter").html(value);
+                });
+                userConnection.on("SendMessage", (user, value) => {
+                    receiveMessage(user, value);
+                });
+
+                function sendMessageClient(user, message) {
+                    userConnection.send("SendMessage", user, message);
+                }
+
+                function newWindowLoaded() {
+                    userConnection.send("UserJoined", username).catch(error => console.log(error));
+                }
+
+                function fulFilled() {
+                    console.log("Connection successful at the 'userCount' hub.");
+                    newWindowLoaded();
+                }
+
+                function rejected() {
+                    console.log("Connection failed with 'userCount' hub");
+                }
+
+                userConnection.start().then(fulFilled, rejected);
+            }
         });
-        userCountConnection.on("updateTotalUsers", (value) => {
-            $("#userCounter").html(value);
-        });
-        userCountConnection.on("sendMessage", (user, value) => {
-            receiveMessage(user, value);
-        });
-
-        function sendMessageClient(user, message) {
-            userCountConnection.send("SendMessage", user, message);
-        }
-
-        function newWindowLoaded() {
-            userCountConnection.send("WindowAdded");
-        }
-
-        function fulFilled() {
-            console.log("Connection successful at the 'userCount' hub.");
-            newWindowLoaded();
-        }
-
-        function rejected() {
-            console.log("Connection failed with 'userCount' hub");
-        }
-
-        userCountConnection.start().then(fulFilled, rejected);
     </script>
 }
