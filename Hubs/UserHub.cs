@@ -42,6 +42,7 @@ namespace DotNetCoreSignalR.Hubs
             TotalViews++;
 
             await Clients.All.ClientJoined(username, TotalViews);
+            await Clients.All.UpdateClients(TableContext.Users);
         }
 
         public async Task SendMessage(string username, string message)

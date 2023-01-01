@@ -213,13 +213,16 @@
                     }
                     const toast = new bootstrap.Toast($("#alertToast"));
                     toast.show();
-
-                    const htmlCode = `<tr><th>${username}</th><td><a href='#' class='btn btn-outline-success'>Mesaj Gönder</a></td></tr>`;
-
-                    $("#activeUsers").append(htmlCode);
                 });
                 userConnection.on("UpdateTotalUsers", (value) => {
                     $("#userCounter").html(value);
+                });
+                userConnection.on("UpdateClients", (clients) => {
+                    $.each(clients, (index, value) => {
+                        const htmlCode = `<tr><th>${clients.Username}</th><td><a href='#' class='btn btn-outline-success'>Mesaj Gönder</a></td></tr>`;
+
+                        $("#activeUsers").append(htmlCode);
+                    })
                 });
                 userConnection.on("SendMessage", (user, value) => {
                     receiveMessage(user, value);
