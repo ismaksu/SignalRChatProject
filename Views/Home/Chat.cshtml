@@ -218,8 +218,9 @@
                     $("#userCounter").html(value);
                 });
                 userConnection.on("UpdateClients", (clients) => {
+                    $("#activeUsers").html("");
                     $.each(clients, (index, value) => {
-                        const htmlCode = `<tr><th>${clients.Username}</th><td><a href='#' class='btn btn-outline-success'>Mesaj Gönder</a></td></tr>`;
+                        const htmlCode = `<tr><th>${value.username}</th><td><a href='#' class='btn btn-outline-success'>Mesaj Gönder</a></td></tr>`;
 
                         $("#activeUsers").append(htmlCode);
                     })
