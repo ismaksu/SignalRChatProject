@@ -11,6 +11,13 @@ namespace DotNetCoreSignalR.Hubs
 {
     public class UserHub : Hub<IUserHubMethods>
     {
+        private readonly IUserService _userService;
+
+        public UserHub(IUserService userService)
+        {
+            _userService = userService;
+        }
+
         public static int TotalViews { get; set; } = 0;
 
         public static int TotalUsers { get; set; } = 0;
@@ -24,8 +31,13 @@ namespace DotNetCoreSignalR.Hubs
 
         public override Task OnDisconnectedAsync(Exception exception)
         {
+            var connectionId = Context.ConnectionId;
+
+            _userService.DeleteUser(connectionId);
+
             TotalUsers--;
             Clients.All.UpdateTotalUsers(TotalUsers);
+            Clients.All.UpdateClients(_userService.GetUserList());
             return base.OnDisconnectedAsync(exception);
         }
 
@@ -37,12 +49,12 @@ namespace DotNetCoreSignalR.Hubs
                 Username = username
             };
 
-            TableContext.Users.Add(user);
+            _userService.AddUser(user);
 
             TotalViews++;
 
             await Clients.All.ClientJoined(username, TotalViews);
-            await Clients.All.UpdateClients(TableContext.Users);
+            await Clients.All.UpdateClients(_userService.GetUserList());
         }
 
         public async Task SendMessage(string username, string message)

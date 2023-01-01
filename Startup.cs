@@ -1,3 +1,4 @@
+using DotNetCoreSignalR.DotNetCoreSignalR.Business.Container;
 using DotNetCoreSignalR.Hubs;
 using DotNetCoreSignalR.Models;
 using Microsoft.AspNetCore.Builder;
@@ -28,6 +29,7 @@ namespace DotNetCoreSignalR
         {
             services.AddControllersWithViews();
             services.AddSignalR();
+            services.ContainerDependencies();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
