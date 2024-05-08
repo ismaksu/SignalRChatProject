@@ -1,3 +1,5 @@
+<h1>Project Discontinued Due To Development Of A Bigger Project That Uses SignalR</h1>
+
 <h3> ASP.NET Core and SignalR realtime chat project. </h3>
 
 Hello, welcome to my project's repository.
